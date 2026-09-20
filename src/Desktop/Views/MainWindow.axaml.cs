@@ -29,6 +29,16 @@ public partial class MainWindow : Window
                     };
                     window.ShowDialog(this);
                 };
+
+                vm.ImportLinkRequested += () =>
+                {
+                    var window = new ImportLinkWindow
+                    {
+                        DataContext = vm.ImportLink
+                    };
+                    vm.ImportLink.CloseRequested += window.Close;
+                    window.ShowDialog(this);
+                };
             }
         };
     }

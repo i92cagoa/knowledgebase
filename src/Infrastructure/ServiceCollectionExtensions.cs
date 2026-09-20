@@ -1,9 +1,12 @@
 using KnowledgeBase.Application.Common;
+using KnowledgeBase.Application.Features.Links;
+using KnowledgeBase.Infrastructure.Links;
 using KnowledgeBase.Infrastructure.Persistence;
 using KnowledgeBase.Infrastructure.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 
@@ -28,6 +31,30 @@ public static class ServiceCollectionExtensions
         services.Configure<AttachmentStorageOptions>(
             configuration.GetSection(AttachmentStorageOptions.SectionName));
         services.AddScoped<IAttachmentStorage, DiskAttachmentStorage>();
+
+        services.Configure<AnalyzerOptions>(
+            configuration.GetSection(AnalyzerOptions.SectionName));
+        services.Configure<OpenAiAnalyzerOptions>(
+            configuration.GetSection(OpenAiAnalyzerOptions.SectionName));
+
+        services.AddHttpClient<ILinkContentFetcher, HttpLinkContentFetcher>(client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(30);
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("KnowledgeBase/1.0");
+        });
+
+        var analyzerProvider = configuration
+            .GetSection(AnalyzerOptions.SectionName)
+            .Get<AnalyzerOptions>()?.Provider ?? "Rules";
+
+        if (analyzerProvider.Equals("OpenAi", StringComparison.OrdinalIgnoreCase))
+        {
+            services.AddHttpClient<ILinkAnalyzer, OpenAiLinkAnalyzer>();
+        }
+        else
+        {
+            services.AddScoped<ILinkAnalyzer, RulesLinkAnalyzer>();
+        }
 
         services.AddOpenTelemetry()
             .WithTracing(tracing => tracing

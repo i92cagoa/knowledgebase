@@ -1,3 +1,4 @@
+using KnowledgeBase.Application.Features.Links;
 using KnowledgeBase.Application.Features.Notes;
 using KnowledgeBase.Application.Features.Workspaces;
 
@@ -56,6 +57,14 @@ public static class WorkspaceEndpoints
                 body.SourceSummary);
 
             var result = await noteService.CreateAsync(command, ct);
+            return result.IsSuccess
+                ? Results.Created($"/api/notes/{result.Value}", result.Value)
+                : result.ToHttpResult();
+        });
+
+        group.MapPost("/{id:guid}/links", async (Guid id, ImportLinkCommand body, ILinkService links, CancellationToken ct) =>
+        {
+            var result = await links.ImportAsync(id, body, ct);
             return result.IsSuccess
                 ? Results.Created($"/api/notes/{result.Value}", result.Value)
                 : result.ToHttpResult();

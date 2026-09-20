@@ -1,6 +1,7 @@
 using System.Reflection;
 using FluentValidation;
 using KnowledgeBase.Application.Features.Attachments;
+using KnowledgeBase.Application.Features.Links;
 using KnowledgeBase.Application.Features.Notes;
 using KnowledgeBase.Application.Features.Tags;
 using KnowledgeBase.Application.Features.Workspaces;
@@ -18,6 +19,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<INoteService, NoteService>();
         services.AddScoped<ITagService, TagService>();
         services.AddScoped<IAttachmentService, AttachmentService>();
+        services.AddScoped<ILinkService, LinkService>();
 
         return services;
     }

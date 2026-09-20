@@ -83,6 +83,33 @@ EF Core is already a multi-provider abstraction. Adding a custom data-access lay
 would mean reinventing what EF does. The provider abstraction lives in DI/configuration, exactly
 as EF Core intends.
 
+## Link import & analysis
+
+`POST /api/workspaces/{id}/links` imports an article link as a note:
+
+1. **Fetch** — `ILinkContentFetcher` downloads the URL and extracts a title + clean text
+   (built-in `HttpLinkContentFetcher`).
+2. **Analyze** — `ILinkAnalyzer` extracts a title, short summary and topic tags. Providers are
+   pluggable via `Analyzer:Provider`:
+   - `Rules` (default): offline keyword-frequency analyzer, deterministic and testable.
+   - `OpenAi`: calls an OpenAI-compatible chat-completions endpoint.
+
+```json
+"Analyzer": {
+  "Provider": "Rules",          // "Rules" or "OpenAi"
+  "OpenAi": {
+    "BaseUrl": "https://api.openai.com/v1",
+    "ApiKey": "",               // set via env var, never commit
+    "Model": "gpt-4o-mini"
+  }
+}
+```
+
+3. **Create** — the result becomes a note reusing the standard note pipeline (title, markdown with a
+   source link, tags, `SourceUrl`, `SourceSummary`).
+
+The API key lives in environment variables / user-secrets, not `appsettings.json`.
+
 ### Migrations per provider
 EF Core migrations are provider-specific. They are currently stored in
 `src/Infrastructure/Migrations/` (SQLite-based). To also support PostgreSQL, generate a second set of
@@ -152,6 +179,7 @@ resource identifier lives in the URL path, and HTTP methods map to actions.
 | DELETE | `/api/workspaces/{id}` | Delete workspace (cascades notes/attachments) |
 | GET | `/api/workspaces/{id}/notes` | List note summaries in a workspace |
 | POST | `/api/workspaces/{id}/notes` | Create note (title, markdown, tags, source url/summary) |
+| POST | `/api/workspaces/{id}/links` | Import a link → fetch + analyze → create note |
 | GET | `/api/notes/{id}` | Get one note with tags + attachments |
 | GET | `/api/notes?titleQuery={text}&tags={t1,t2}&page={n}&pageSize={n}` | Search/paginate notes by title/content and tags |
 | PUT | `/api/notes/{id}` | Update note + replace its tags |
@@ -195,6 +223,7 @@ Located in `tests/E2ETests/Features`. Each scenario runs against a fresh SQLite 
 | `Notes.feature` | Create note with tags in workspace; reuse tag keeps a single tag; search finds notes by title and tag | note CRUD, tree, tag reuse, search |
 | `Tags.feature` | Rename a tag; merge a tag into another reassigns notes | tag rename/recolor, merge, note counts |
 | `Graph.feature` | Graph connects notes sharing tags | `/api/graph` nodes + edges |
+| `Links.feature` | Import a link creates an analyzed note | link import, analyzed tags + summary |
 
 Run them with: `dotnet test tests/E2ETests`
 
@@ -267,10 +296,11 @@ summary.
 
 | Task | Status | Notes |
 |---|---|---|
-| 5.1 Import article endpoint (fetch URL) | **planned** | |
-| 5.2 LLM analysis (topic/tag extraction + summary) | **planned** | |
-| 5.3 Create note from analysis result | **planned** | reuses 1.2/1.5 |
-| 5.4 LLM provider abstraction (pluggable) | **planned** | |
+| 5.1 Import article endpoint (fetch URL) | **done** | `POST /api/workspaces/{id}/links` + `ILinkContentFetcher` |
+| 5.2 LLM analysis (topic/tag extraction + summary) | **done** | built-in `RulesLinkAnalyzer` (offline, deterministic) |
+| 5.3 Create note from analysis result | **done** | reuses `INoteService.CreateAsync` (title/markdown/source/tags) |
+| 5.4 LLM provider abstraction (pluggable) | **done** | `ILinkAnalyzer`; `Analyzer:Provider = Rules | OpenAi` |
+| 5.5 Desktop import-link dialog | **done** | "Import Link" toolbar button → URL → analyzed note |
 
 ### Feature 6 — CSV link import
 Provide a CSV file with links and add them exactly as in Feature 5.

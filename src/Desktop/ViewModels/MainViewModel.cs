@@ -25,6 +25,7 @@ public sealed partial class MainViewModel : ViewModelBase
         Tags = new TagManagerViewModel(api);
         Graph = new GraphViewModel(api);
         Graph.NodeSelected += OnGraphNodeSelected;
+        ImportLink = new ImportLinkViewModel(api, () => _currentWorkspaceId, () => _ = LoadAllAsync());
     }
 
     public TreeViewModel Tree { get; }
@@ -34,6 +35,10 @@ public sealed partial class MainViewModel : ViewModelBase
     public TagManagerViewModel Tags { get; }
 
     public GraphViewModel Graph { get; }
+
+    public ImportLinkViewModel ImportLink { get; }
+
+    public event Action? ImportLinkRequested;
 
     [ObservableProperty]
     public partial string StatusMessage { get; set; } = "Ready";
@@ -95,6 +100,18 @@ public sealed partial class MainViewModel : ViewModelBase
     }
 
     public event Action? GraphRequested;
+
+    [RelayCommand]
+    private void OpenImportLink()
+    {
+        if (_currentWorkspaceId is null)
+        {
+            StatusMessage = "Select a workspace first.";
+            return;
+        }
+
+        ImportLinkRequested?.Invoke();
+    }
 
     private async void OnGraphNodeSelected(Guid noteId)
     {

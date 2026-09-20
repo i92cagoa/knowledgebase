@@ -91,6 +91,13 @@ public sealed class KnowledgeBaseApiClient
         return await response.Content.ReadFromJsonAsync<Guid>();
     }
 
+    public async Task<Guid> ImportLinkAsync(Guid workspaceId, string url)
+    {
+        var response = await _http.PostAsJsonAsync($"api/workspaces/{workspaceId}/links", new ImportLinkRequest(url));
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<Guid>();
+    }
+
     public async Task UpdateNoteAsync(Guid id, UpdateNoteRequest request)
     {
         var response = await _http.PutAsJsonAsync($"api/notes/{id}", request);

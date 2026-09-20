@@ -51,6 +51,7 @@ public sealed record UpdateWorkspaceRequest(string Name, string? Description);
 public sealed record CreateTagRequest(string Name, string Color);
 public sealed record UpdateTagRequest(string Name, string Color);
 public sealed record MergeTagsRequest(Guid SourceTagId, Guid TargetTagId);
+public sealed record ImportLinkRequest(string Url);
 
 public sealed record CreateNoteRequest(
     string Title,

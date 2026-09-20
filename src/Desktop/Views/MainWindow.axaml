@@ -35,6 +35,7 @@
                 <Button Content="Search (⌘K)" Command="{Binding OpenSearchCommand}" />
                 <Button Content="Tags" Command="{Binding OpenTagManagerCommand}" />
                 <Button Content="Graph" Command="{Binding OpenGraphCommand}" />
+                <Button Content="Import Link" Command="{Binding OpenImportLinkCommand}" />
                 <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center" Foreground="#BBBBBB" />
             </StackPanel>
         </Border>
