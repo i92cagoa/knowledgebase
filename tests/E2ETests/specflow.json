@@ -1,0 +1,16 @@
+{
+  "bindingCulture": {
+    "name": "en-us"
+  },
+  "language": {
+    "feature": "en"
+  },
+  "runtime": {
+    "missingOrPendingStepsAfter": 30
+  },
+  "stepAssemblies": [
+    {
+      "assembly": "KnowledgeBase.E2ETests"
+    }
+  ]
+}

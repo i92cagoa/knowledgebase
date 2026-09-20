@@ -1,0 +1,206 @@
+using FluentValidation;
+using KnowledgeBase.Application.Common;
+using KnowledgeBase.Application.Features.Dtos;
+using KnowledgeBase.Domain.Common;
+using KnowledgeBase.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+
+namespace KnowledgeBase.Application.Features.Notes;
+
+public sealed class NoteService(
+    IAppDbContext db,
+    IValidator<CreateNoteCommand> createValidator,
+    IValidator<UpdateNoteCommand> updateValidator) : INoteService
+{
+    public async Task<Result<Guid>> CreateAsync(CreateNoteCommand command, CancellationToken cancellationToken)
+    {
+        var validation = await createValidator.ValidateAsync(command, cancellationToken);
+        if (!validation.IsValid)
+        {
+            return Error.Invalid(string.Join("; ", validation.Errors.Select(e => e.ErrorMessage)));
+        }
+
+        var workspace = await db.Workspaces.FindAsync([command.WorkspaceId], cancellationToken);
+        if (workspace is null)
+        {
+            return Error.NotFound($"Workspace '{command.WorkspaceId}' was not found.");
+        }
+
+        var note = Note.Create(
+            command.Title,
+            command.ContentMarkdown,
+            command.WorkspaceId,
+            command.SourceUrl,
+            command.SourceSummary);
+
+        await AssignTagsAsync(note, command.Tags, cancellationToken);
+
+        db.Notes.Add(note);
+        await db.SaveChangesAsync(cancellationToken);
+
+        return Result<Guid>.Success(note.Id);
+    }
+
+    public async Task<Result> UpdateAsync(UpdateNoteCommand command, CancellationToken cancellationToken)
+    {
+        var validation = await updateValidator.ValidateAsync(command, cancellationToken);
+        if (!validation.IsValid)
+        {
+            return Error.Invalid(string.Join("; ", validation.Errors.Select(e => e.ErrorMessage)));
+        }
+
+        var note = await db.Notes
+            .Include(n => n.NoteTags)
+            .ThenInclude(nt => nt.Tag)
+            .SingleOrDefaultAsync(n => n.Id == command.Id, cancellationToken);
+        if (note is null)
+        {
+            return Error.NotFound($"Note '{command.Id}' was not found.");
+        }
+
+        note.Update(command.Title, command.ContentMarkdown, command.SourceUrl, command.SourceSummary);
+
+        await ReplaceTagsAsync(note, command.Tags, cancellationToken);
+
+        await db.SaveChangesAsync(cancellationToken);
+
+        return Result.Success();
+    }
+
+    public async Task<Result> DeleteAsync(DeleteNoteCommand command, CancellationToken cancellationToken)
+    {
+        var note = await db.Notes.FindAsync([command.Id], cancellationToken);
+        if (note is null)
+        {
+            return Error.NotFound($"Note '{command.Id}' was not found.");
+        }
+
+        db.Notes.Remove(note);
+        await db.SaveChangesAsync(cancellationToken);
+
+        return Result.Success();
+    }
+
+    public async Task<Result<NoteDto>> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    {
+        var note = await db.Notes
+            .AsNoTracking()
+            .AsSplitQuery()
+            .Where(n => n.Id == id)
+            .Select(n => new NoteDto(
+                n.Id,
+                n.Title,
+                n.ContentMarkdown,
+                n.CreatedAt,
+                n.UpdatedAt,
+                n.WorkspaceId,
+                n.SourceUrl,
+                n.SourceSummary,
+                n.NoteTags.Select(nt => new TagDto(nt.Tag.Id, nt.Tag.Name, nt.Tag.Color)).ToList(),
+                n.Attachments.Select(a => new AttachmentDto(
+                    a.Id,
+                    a.FileName,
+                    a.ContentType,
+                    a.Kind,
+                    $"api/attachments/{a.Id}")).ToList()))
+            .SingleOrDefaultAsync(cancellationToken);
+
+        return note is null
+            ? Error.NotFound($"Note '{id}' was not found.")
+            : Result<NoteDto>.Success(note);
+    }
+
+    public async Task<Result<IReadOnlyList<NoteSummaryDto>>> ListByWorkspaceAsync(Guid workspaceId, CancellationToken cancellationToken)
+    {
+        var workspaceExists = await db.Workspaces.AnyAsync(w => w.Id == workspaceId, cancellationToken);
+        if (!workspaceExists)
+        {
+            return Error.NotFound($"Workspace '{workspaceId}' was not found.");
+        }
+
+        var notes = await db.Notes
+            .AsNoTracking()
+            .Where(n => n.WorkspaceId == workspaceId)
+            .OrderByDescending(n => n.UpdatedAt)
+            .Select(n => new NoteSummaryDto(
+                n.Id,
+                n.Title,
+                n.UpdatedAt,
+                n.NoteTags.Select(nt => nt.Tag.Name).ToList()))
+            .ToListAsync(cancellationToken);
+
+        return Result<IReadOnlyList<NoteSummaryDto>>.Success(ToReadOnlyList(notes));
+    }
+
+    private async Task AssignTagsAsync(Note note, IReadOnlyList<string> tagNames, CancellationToken cancellationToken)
+    {
+        var distinctNames = tagNames
+            .Select(t => t.Trim())
+            .Where(t => t.Length > 0)
+            .Distinct()
+            .ToList();
+
+        if (distinctNames.Count == 0)
+        {
+            return;
+        }
+
+        var existing = await db.Tags
+            .Where(t => distinctNames.Contains(t.Name))
+            .ToListAsync(cancellationToken);
+
+        foreach (var name in distinctNames)
+        {
+            var tag = existing.FirstOrDefault(t => t.Name == name) ?? Tag.Create(name);
+            note.NoteTags.Add(NoteTag.Create(note.Id, tag.Id));
+
+            if (!existing.Contains(tag))
+            {
+                existing.Add(tag);
+                db.Tags.Add(tag);
+            }
+        }
+    }
+
+    private async Task ReplaceTagsAsync(Note note, IReadOnlyList<string> tagNames, CancellationToken cancellationToken)
+    {
+        var distinctNames = tagNames
+            .Select(t => t.Trim())
+            .Where(t => t.Length > 0)
+            .Distinct()
+            .ToList();
+
+        var kept = new HashSet<Guid>();
+        var tracked = note.NoteTags.Select(nt => nt.TagId).ToHashSet();
+
+        foreach (var name in distinctNames)
+        {
+            var tag = note.NoteTags
+                .Select(nt => nt.Tag)
+                .FirstOrDefault(t => t.Name == name);
+
+            if (tag is null)
+            {
+                tag = await db.Tags.FirstOrDefaultAsync(t => t.Name == name, cancellationToken);
+                if (tag is null)
+                {
+                    tag = Tag.Create(name);
+                    db.Tags.Add(tag);
+                }
+            }
+
+            kept.Add(tag.Id);
+            if (!tracked.Contains(tag.Id))
+            {
+                db.NoteTags.Add(NoteTag.Create(note.Id, tag.Id));
+            }
+        }
+
+        foreach (var nt in note.NoteTags.Where(nt => !kept.Contains(nt.TagId)).ToList())
+        {
+            db.NoteTags.Remove(nt);
+        }
+    }
+
+    private static IReadOnlyList<T> ToReadOnlyList<T>(List<T> list) => list;
+}
