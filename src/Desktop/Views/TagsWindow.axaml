@@ -17,10 +17,13 @@
         <StackPanel Grid.Row="0" Spacing="6" Margin="0,0,0,8">
             <TextBlock Text="Tags" FontWeight="Bold" FontSize="16" />
             <TextBlock Text="{Binding StatusMessage}" Foreground="#8FC7FF" />
-            <Grid ColumnDefinitions="*,90,Auto">
+            <Grid ColumnDefinitions="*,90,26,Auto">
                 <TextBox Grid.Column="0" Text="{Binding NewTagName}" PlaceholderText="New tag name" />
                 <TextBox Grid.Column="1" Text="{Binding NewTagColor}" PlaceholderText="#RRGGBB" Margin="6,0" />
-                <Button Grid.Column="2" Content="Add" Command="{Binding AddTagCommand}" />
+                <Border Grid.Column="2" Width="20" Height="20" CornerRadius="4" Margin="4,0,0,0"
+                        BorderBrush="#555555" BorderThickness="1" VerticalAlignment="Center"
+                        Background="{Binding NewTagColorBrush}" />
+                <Button Grid.Column="3" Content="Add" Command="{Binding AddTagCommand}" />
             </Grid>
         </StackPanel>
 
@@ -32,7 +35,7 @@
                         <Grid ColumnDefinitions="16,*">
                             <Border Grid.Column="0" CornerRadius="8" Width="12" Height="12"
                                     HorizontalAlignment="Left" VerticalAlignment="Center"
-                                    Background="{Binding Color}" />
+                                    Background="{Binding ColorBrush}" />
                             <TextBlock Grid.Column="1" Text="{Binding DisplayName}" />
                         </Grid>
                     </DataTemplate>
@@ -42,7 +45,12 @@
             <StackPanel Grid.Column="1" Spacing="8" Margin="12,0,0,0">
                 <TextBlock Text="Edit selected" FontWeight="SemiBold" />
                 <TextBox Text="{Binding EditName}" PlaceholderText="Rename" />
-                <TextBox Text="{Binding EditColor}" PlaceholderText="#RRGGBB" />
+                <Grid ColumnDefinitions="*,26">
+                    <TextBox Grid.Column="0" Text="{Binding EditColor}" PlaceholderText="#RRGGBB" />
+                    <Border Grid.Column="1" Width="20" Height="20" CornerRadius="4" Margin="6,0,0,0"
+                            BorderBrush="#555555" BorderThickness="1" VerticalAlignment="Center"
+                            Background="{Binding EditColorBrush}" />
+                </Grid>
                 <Button Content="Save changes" Command="{Binding UpdateTagCommand}" />
 
                 <Separator Margin="0,8" />

@@ -11,5 +11,55 @@
 
     <Application.Styles>
         <FluentTheme />
+
+        <!-- Retro 90s 3D buttons -->
+        <Style Selector="Button">
+            <Setter Property="FontFamily" Value="Consolas, Courier New" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Padding" Value="14,6" />
+            <Setter Property="CornerRadius" Value="2" />
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="Foreground" Value="#202020" />
+            <Setter Property="BorderBrush" Value="#808080" />
+
+            <Setter Property="Background">
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                    <GradientStop Color="#E8E8E8" Offset="0" />
+                    <GradientStop Color="#C8C8C8" Offset="1" />
+                </LinearGradientBrush>
+            </Setter>
+        </Style>
+
+        <!-- raised look: strong light top + dark silhouette -->
+        <Style Selector="Button:pointerover">
+            <Setter Property="Background">
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                    <GradientStop Color="#F4F4F4" Offset="0" />
+                    <GradientStop Color="#D8D8D8" Offset="1" />
+                </LinearGradientBrush>
+            </Setter>
+            <Setter Property="BorderBrush" Value="#8A8A8A" />
+        </Style>
+
+        <!-- pressed: inset, darker -->
+        <Style Selector="Button:pressed">
+            <Setter Property="Background" Value="#B0B0B0" />
+            <Setter Property="BorderBrush" Value="#606060" />
+            <Setter Property="Margin" Value="1,1,-1,-1" />
+        </Style>
+
+        <!-- accent for primary actions (Save / Import / Create) -->
+        <Style Selector="Button.accent">
+            <Setter Property="Foreground" Value="#0A0A0A" />
+            <Setter Property="Background">
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                    <GradientStop Color="#A8E0A8" Offset="0" />
+                    <GradientStop Color="#6FBF6F" Offset="1" />
+                </LinearGradientBrush>
+            </Setter>
+        </Style>
+        <Style Selector="Button.accent:pressed">
+            <Setter Property="Background" Value="#5FA55F" />
+        </Style>
     </Application.Styles>
 </Application>

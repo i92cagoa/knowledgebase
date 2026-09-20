@@ -1,6 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
+using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using KnowledgeBase.Desktop.Models;
@@ -154,7 +155,7 @@ public sealed partial class MainViewModel : ViewModelBase
         AvailableTags.Clear();
         foreach (var tag in tags)
         {
-            AvailableTags.Add(new TagItem(tag.Id, tag.Name));
+            AvailableTags.Add(new TagItem(tag.Id, tag.Name, tag.Color));
         }
     }
 
@@ -213,6 +214,19 @@ public sealed partial class MainViewModel : ViewModelBase
     private void TogglePreview()
     {
         PreviewMarkdown = NoteContent;
+    }
+
+    [RelayCommand]
+    private void CancelNote()
+    {
+        _editingNoteId = null;
+        NoteTitle = string.Empty;
+        NoteContent = string.Empty;
+        NoteTagsText = string.Empty;
+        PreviewMarkdown = string.Empty;
+        IsEditing = false;
+        IsEditorVisible = false;
+        StatusMessage = "Edit discarded.";
     }
 
     [RelayCommand]
@@ -351,4 +365,21 @@ public sealed partial class MainViewModel : ViewModelBase
             .Distinct(StringComparer.OrdinalIgnoreCase);
 }
 
-public sealed record TagItem(Guid Id, string Name);
+public sealed record TagItem(Guid Id, string Name, string Color)
+{
+    public IBrush ColorBrush => new SolidColorBrush(ColorParsing.TryParse(Color, 255, 208, 120));
+}
+
+internal static class ColorParsing
+{
+    public static Color TryParse(string hex, byte fallbackR, byte fallbackG, byte fallbackB)
+    {
+        if (!string.IsNullOrWhiteSpace(hex) &&
+            Color.TryParse(hex, out var parsed))
+        {
+            return parsed;
+        }
+
+        return Color.FromRgb(fallbackR, fallbackG, fallbackB);
+    }
+}

@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using KnowledgeBase.Desktop.Models;
@@ -28,13 +29,21 @@ public sealed partial class TagManagerViewModel : ViewModelBase
     public partial string NewTagColor { get; set; } = "#FFB020";
 
     [ObservableProperty]
+    public partial string EditColor { get; set; } = "#FFB020";
+
+    public IBrush NewTagColorBrush => new SolidColorBrush(ColorParsing.TryParse(NewTagColor, 255, 208, 120));
+
+    public IBrush EditColorBrush => new SolidColorBrush(ColorParsing.TryParse(EditColor, 160, 160, 160));
+
+    partial void OnNewTagColorChanged(string value) => OnPropertyChanged(nameof(NewTagColorBrush));
+
+    partial void OnEditColorChanged(string value) => OnPropertyChanged(nameof(EditColorBrush));
+
+    [ObservableProperty]
     public partial TagRow? SelectedTag { get; set; }
 
     [ObservableProperty]
     public partial string EditName { get; set; } = string.Empty;
-
-    [ObservableProperty]
-    public partial string EditColor { get; set; } = "#FFB020";
 
     [ObservableProperty]
     public partial string MergeTargetName { get; set; } = string.Empty;
@@ -178,4 +187,5 @@ public sealed partial class TagManagerViewModel : ViewModelBase
 public sealed record TagRow(Guid Id, string Name, string Color, int NoteCount)
 {
     public string DisplayName => $"{Name} ({NoteCount})";
+    public IBrush ColorBrush => new SolidColorBrush(ColorParsing.TryParse(Color, 160, 160, 160));
 }

@@ -1,4 +1,5 @@
 using AwesomeAssertions;
+using Avalonia.Media;
 using CommunityToolkit.Mvvm.Input;
 using KnowledgeBase.Desktop.Models;
 using KnowledgeBase.Desktop.ViewModels;
@@ -136,5 +137,48 @@ public sealed class DialogCommandTests
 
         opened.Should().NotBeNull();
         opened!.Id.Should().Be(result.Id);
+    }
+
+    [Fact]
+    public void TagRow_ColorBrush_Reflects_Hex()
+    {
+        var row = new TagRow(Guid.NewGuid(), "dotnet", "#512BD4", 3);
+
+        var brush = row.ColorBrush as ISolidColorBrush;
+        brush.Should().NotBeNull();
+        brush!.Color.Should().Be(Color.Parse("#512BD4"));
+    }
+
+    [Fact]
+    public void TagRow_ColorBrush_Falls_Back_On_Invalid_Hex()
+    {
+        var row = new TagRow(Guid.NewGuid(), "x", "not-a-color", 0);
+
+        var brush = row.ColorBrush as ISolidColorBrush;
+        brush.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void TagManager_Color_Input_Brushes_Reflect_Hex()
+    {
+        var api = new FakeKnowledgeBaseApiClient();
+        var vm = new TagManagerViewModel(api);
+        vm.NewTagColor = "#00FF00";
+        vm.EditColor = "#0000FF";
+
+        ((ISolidColorBrush)vm.NewTagColorBrush).Color.Should().Be(Color.Parse("#00FF00"));
+        ((ISolidColorBrush)vm.EditColorBrush).Color.Should().Be(Color.Parse("#0000FF"));
+    }
+
+    [Fact]
+    public void TagManager_Color_Input_Brushes_Fall_Back_On_Invalid_Hex()
+    {
+        var api = new FakeKnowledgeBaseApiClient();
+        var vm = new TagManagerViewModel(api);
+        vm.NewTagColor = "oops";
+        vm.EditColor = "";
+
+        ((ISolidColorBrush)vm.NewTagColorBrush).Color.Should().Be(Color.Parse("#FFD078"));
+        ((ISolidColorBrush)vm.EditColorBrush).Color.Should().Be(Color.Parse("#A0A0A0"));
     }
 }
