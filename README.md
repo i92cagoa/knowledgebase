@@ -164,6 +164,20 @@ python3 tools/generate_icon.py
 cp tools/bulb.png tools/bulb.ico src/Desktop/Assets/
 ```
 
+### macOS Dock icon
+
+Running via `dotnet run --project src/Desktop` launches a bare executable, so macOS shows a generic
+Dock icon. To get the lightbulb in the Dock, package the app into a `.app` bundle (also gives an
+ad-hoc signed, double-clickable app):
+
+```bash
+bash tools/build-macos-app.sh    # auto-detects Intel/Apple Silicon
+open dist/KnowledgeBase.app
+```
+
+The script generates `bulb.icns`, publishes the app self-contained, assembles
+`dist/KnowledgeBase.app` (Info.plist + icon), and ad-hoc signs it.
+
 ## API surface
 
 The API is **RESTful**: resources are nouns, related resources are nested under their parent, the
@@ -211,6 +225,7 @@ dotnet test
 | Contract | API routes, status codes, error mapping, OpenAPI document | `tests/ContractTests` |
 | Integration | EF Core persistence + disk storage against real SQLite file | `tests/IntegrationTests` |
 | E2E (SpecFlow) | Gherkin scenarios against hosted API | `tests/E2ETests` |
+| Desktop | Avalonia ViewModels/commands — every button's command binding resolves and executes | `tests/DesktopTests` |
 
 ### E2E tests (SpecFlow)
 

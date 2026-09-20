@@ -3,29 +3,30 @@
         xmlns:vm="using:KnowledgeBase.Desktop.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="220"
-        x:Class="KnowledgeBase.Desktop.Views.ImportLinkWindow"
-        x:DataType="vm:ImportLinkViewModel"
-        Title="Import a Link"
-        Width="480" Height="220"
+        mc:Ignorable="d" d:DesignWidth="420" d:DesignHeight="260"
+        x:Class="KnowledgeBase.Desktop.Views.NewWorkspaceWindow"
+        x:DataType="vm:NewWorkspaceViewModel"
+        Title="New Workspace"
+        Width="420" Height="260"
         ShowInTaskbar="False">
 
     <Design.DataContext>
-        <vm:ImportLinkViewModel />
+        <vm:NewWorkspaceViewModel />
     </Design.DataContext>
 
     <StackPanel Margin="16" Spacing="10">
-        <TextBlock Text="Import a link as a note" FontWeight="Bold" FontSize="16" />
-        <TextBlock Text="The link is fetched and analyzed to extract a summary and tags."
+        <TextBlock Text="Create a workspace" FontWeight="Bold" FontSize="16" />
+        <TextBlock Text="Workspaces group related notes together in the tree view."
                    Foreground="#888888" TextWrapping="Wrap" />
 
-        <TextBox Text="{Binding Url}" PlaceholderText="https://example.com/article" FontSize="15" />
+        <TextBox Text="{Binding Name}" PlaceholderText="Workspace name" FontSize="15" />
+        <TextBox Text="{Binding Description}" PlaceholderText="Description (optional)" AcceptsReturn="True" Height="60" />
 
         <TextBlock Text="{Binding StatusMessage}" Foreground="#8FC7FF" TextWrapping="Wrap" />
 
         <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
             <Button Content="Cancel" Command="{Binding CancelCommand}" />
-            <Button Content="Import" Command="{Binding ImportCommand}" IsDefault="True" />
+            <Button Content="Create" Command="{Binding CreateCommand}" IsDefault="True" />
         </StackPanel>
     </StackPanel>
 </Window>

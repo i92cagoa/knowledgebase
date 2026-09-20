@@ -24,9 +24,11 @@ src/Domain -> entities, rules - src/Infrastructure -> EF Core, services, Open Te
 - The desktop app should use the APIs defined in the structure.
 - The desktop app has to use AvaloniaUI: https://avaloniaui.net/
 - Contract tests for APIs, Integration tests for db operations, Unit tests for features.
+- Desktop tests for Avalonia ViewModels/commands: every button's Command binding must resolve and execute (tests/DesktopTests).
 - Add Specflow E2E tests for the features.
 - Document everything in README.md file
 - Document E2E tests in README.md file
+- TreatWarningsAsErrors=true must stay enabled (configured in Directory.Build.props). Never introduce code or dependencies that produce warnings; fix them or remove the offending code.
 
 ## Never Suggest
 - AutoMapper (write explicit mappings)

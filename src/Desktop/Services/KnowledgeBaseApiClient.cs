@@ -3,7 +3,7 @@ using KnowledgeBase.Desktop.Models;
 
 namespace KnowledgeBase.Desktop.Services;
 
-public sealed class KnowledgeBaseApiClient
+public sealed class KnowledgeBaseApiClient : IKnowledgeBaseApiClient
 {
     private readonly HttpClient _http;
 

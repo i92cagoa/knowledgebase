@@ -161,7 +161,7 @@ public sealed class TagServiceTests
 
         var tags = await service.ListAsync(CancellationToken.None);
         var source = tags.Value!.Single(t => t.Name == "old");
-        var target = tags.Value.Single(t => t.Name == "backend");
+        var target = tags.Value!.Single(t => t.Name == "backend");
 
         var result = await service.MergeAsync(new MergeTagCommand(source.Id, target.Id), CancellationToken.None);
 

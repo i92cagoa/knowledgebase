@@ -39,6 +39,16 @@ public partial class MainWindow : Window
                     vm.ImportLink.CloseRequested += window.Close;
                     window.ShowDialog(this);
                 };
+
+                vm.NewWorkspaceRequested += () =>
+                {
+                    var window = new NewWorkspaceWindow
+                    {
+                        DataContext = vm.NewWorkspace
+                    };
+                    vm.NewWorkspace.CloseRequested += window.Close;
+                    window.ShowDialog(this);
+                };
             }
         };
     }

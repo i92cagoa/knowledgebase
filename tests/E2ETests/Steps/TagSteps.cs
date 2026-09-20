@@ -65,7 +65,7 @@ public sealed class TagSteps
     {
         var tags = await (await _client.GetAsync("/api/tags")).Content.ReadFromJsonAsync<List<TagBody>>();
         var source = tags!.Single(t => t.Name == sourceName);
-        var target = tags.Single(t => t.Name == targetName);
+        var target = tags!.Single(t => t.Name == targetName);
 
         var response = await _client.PostAsJsonAsync("/api/tag-merges", new
         {

@@ -21,9 +21,9 @@ public sealed record GraphLayoutNode(
 
 public sealed partial class GraphViewModel : ViewModelBase
 {
-    private readonly KnowledgeBaseApiClient _api;
+    private readonly IKnowledgeBaseApiClient _api;
 
-    public GraphViewModel(KnowledgeBaseApiClient api)
+    public GraphViewModel(IKnowledgeBaseApiClient api)
     {
         _api = api;
     }

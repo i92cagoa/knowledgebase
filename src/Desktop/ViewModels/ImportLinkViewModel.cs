@@ -6,11 +6,11 @@ namespace KnowledgeBase.Desktop.ViewModels;
 
 public sealed partial class ImportLinkViewModel : ViewModelBase
 {
-    private readonly KnowledgeBaseApiClient _api;
+    private readonly IKnowledgeBaseApiClient _api;
     private readonly Func<Guid?> _getWorkspaceId;
     private readonly Action _onImported;
 
-    public ImportLinkViewModel(KnowledgeBaseApiClient api, Func<Guid?> getWorkspaceId, Action onImported)
+    public ImportLinkViewModel(IKnowledgeBaseApiClient api, Func<Guid?> getWorkspaceId, Action onImported)
     {
         _api = api;
         _getWorkspaceId = getWorkspaceId;

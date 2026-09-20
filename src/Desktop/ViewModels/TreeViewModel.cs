@@ -36,10 +36,10 @@ public sealed class NoteNode : ViewModelBase
 
 public sealed partial class TreeViewModel : ViewModelBase
 {
-    private readonly KnowledgeBaseApiClient _api;
+    private readonly IKnowledgeBaseApiClient _api;
     private object? _selectedItem;
 
-    public TreeViewModel(KnowledgeBaseApiClient api)
+    public TreeViewModel(IKnowledgeBaseApiClient api)
     {
         _api = api;
     }

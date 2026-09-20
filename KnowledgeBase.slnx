@@ -19,6 +19,9 @@
   <Folder Name="/tests/ContractTests/">
     <Project Path="tests/ContractTests/KnowledgeBase.ContractTests.csproj" />
   </Folder>
+  <Folder Name="/tests/DesktopTests/">
+    <Project Path="tests/DesktopTests/KnowledgeBase.DesktopTests.csproj" />
+  </Folder>
   <Folder Name="/tests/E2ETests/">
     <Project Path="tests/E2ETests/KnowledgeBase.E2ETests.csproj" />
   </Folder>

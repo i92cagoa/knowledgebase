@@ -8,10 +8,10 @@ namespace KnowledgeBase.Desktop.ViewModels;
 
 public sealed partial class TagManagerViewModel : ViewModelBase
 {
-    private readonly KnowledgeBaseApiClient _api;
+    private readonly IKnowledgeBaseApiClient _api;
     private string _editingId = string.Empty;
 
-    public TagManagerViewModel(KnowledgeBaseApiClient api)
+    public TagManagerViewModel(IKnowledgeBaseApiClient api)
     {
         _api = api;
     }

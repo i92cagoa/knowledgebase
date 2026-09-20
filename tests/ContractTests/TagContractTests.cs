@@ -88,7 +88,7 @@ public sealed class TagContractTests : IClassFixture<ContractTestWebApplicationF
 
         var tags = await (await _client.GetAsync("/api/tags")).Content.ReadFromJsonAsync<List<TagBody>>();
         var source = tags!.Single(t => t.Name == "old");
-        var target = tags.Single(t => t.Name == "backend");
+        var target = tags!.Single(t => t.Name == "backend");
 
         var response = await _client.PostAsJsonAsync("/api/tag-merges", new { sourceTagId = source.Id, targetTagId = target.Id });
 

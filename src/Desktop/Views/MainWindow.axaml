@@ -27,7 +27,7 @@
                 <Image Source="/Assets/bulb.png" Width="22" Height="22" VerticalAlignment="Center" />
                 <TextBlock Text="Knowledge Base" FontWeight="Bold" VerticalAlignment="Center" Foreground="#FFD65A" />
                 <Button Content="Refresh" Command="{Binding RefreshCommand}" Margin="16,0,0,0" />
-                <Button Content="New Workspace" Command="{Binding NewWorkspaceCommand}" />
+                <Button Content="New Workspace" Command="{Binding OpenNewWorkspaceCommand}" />
                 <Button Content="Delete Workspace" Command="{Binding DeleteWorkspaceCommand}" />
                 <Button Content="New Note" Command="{Binding NewNoteCommand}" />
                 <Button Content="Save Note" Command="{Binding SaveNoteCommand}" />
@@ -57,7 +57,7 @@
             <Border Grid.Column="1" Background="#282828" Padding="12" IsVisible="{Binding IsEditorVisible}">
                 <Grid RowDefinitions="Auto,*,Auto">
                     <Grid Grid.Row="0" ColumnDefinitions="*,120">
-                        <TextBox Grid.Column="0" Text="{Binding NoteTitle}" Watermark="Note title"
+                        <TextBox Grid.Column="0" Text="{Binding NoteTitle}" PlaceholderText="Note title"
                                  FontSize="20" FontWeight="SemiBold"
                                  Background="Transparent" BorderThickness="0" />
                         <Button Grid.Column="1" Content="Toggle Preview" Command="{Binding TogglePreviewCommand}"
@@ -69,7 +69,7 @@
                         <TabControl Grid.Column="1" Margin="0" MinHeight="300">
                             <TabItem Header="Editor">
                                 <TextBox Text="{Binding NoteContent}" AcceptsReturn="True"
-                                         Watermark="Write in Markdown..."
+                                         PlaceholderText="Write in Markdown..."
                                          MinWidth="200" />
                             </TabItem>
                             <TabItem Header="Preview">
@@ -80,7 +80,7 @@
 
                     <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,8,0,0">
                         <TextBox Grid.Column="0" Text="{Binding NoteTagsText}"
-                                 Watermark="Tags, comma separated (e.g. dotnet, database)" />
+                                 PlaceholderText="Tags, comma separated (e.g. dotnet, database)" />
                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" Margin="8,0,0,0">
                             <TextBlock Text="Available:" VerticalAlignment="Center" />
                             <ItemsControl ItemsSource="{Binding AvailableTags}">
@@ -110,7 +110,7 @@
                         Padding="16" BoxShadow="0 8 24 0 #00000099">
                     <StackPanel Spacing="8">
                         <TextBox Text="{Binding Search.SearchText}"
-                                 Watermark="Search notes, topics, content... (Enter to open, Esc to close)"
+                                 PlaceholderText="Search notes, topics, content... (Enter to open, Esc to close)"
                                  FontSize="18" />
 
                         <TextBlock Text="{Binding Search.TotalCount, StringFormat='{}{0} results'}"

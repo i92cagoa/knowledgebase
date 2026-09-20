@@ -10,12 +10,12 @@ namespace KnowledgeBase.Desktop.ViewModels;
 
 public sealed partial class MainViewModel : ViewModelBase
 {
-    private readonly KnowledgeBaseApiClient _api;
+    private readonly IKnowledgeBaseApiClient _api;
     private Guid? _editingNoteId;
     private Guid? _currentWorkspaceId;
     private WorkspaceNode? _selectedWorkspace;
 
-    public MainViewModel(KnowledgeBaseApiClient api)
+    public MainViewModel(IKnowledgeBaseApiClient api)
     {
         _api = api;
         Tree = new TreeViewModel(api);
@@ -26,6 +26,7 @@ public sealed partial class MainViewModel : ViewModelBase
         Graph = new GraphViewModel(api);
         Graph.NodeSelected += OnGraphNodeSelected;
         ImportLink = new ImportLinkViewModel(api, () => _currentWorkspaceId, () => _ = LoadAllAsync());
+        NewWorkspace = new NewWorkspaceViewModel(api, () => _ = LoadAllAsync());
     }
 
     public TreeViewModel Tree { get; }
@@ -38,7 +39,10 @@ public sealed partial class MainViewModel : ViewModelBase
 
     public ImportLinkViewModel ImportLink { get; }
 
+    public NewWorkspaceViewModel NewWorkspace { get; }
+
     public event Action? ImportLinkRequested;
+    public event Action? NewWorkspaceRequested;
 
     [ObservableProperty]
     public partial string StatusMessage { get; set; } = "Ready";
@@ -307,29 +311,9 @@ public sealed partial class MainViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task NewWorkspaceAsync(string name)
+    private void OpenNewWorkspace()
     {
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            StatusMessage = "Workspace name cannot be empty.";
-            return;
-        }
-
-        IsBusy = true;
-        try
-        {
-            await _api.CreateWorkspaceAsync(name, null);
-            StatusMessage = $"Workspace '{name}' created.";
-            await Tree.LoadAsync();
-        }
-        catch (Exception ex)
-        {
-            StatusMessage = $"Create failed: {ex.Message}";
-        }
-        finally
-        {
-            IsBusy = false;
-        }
+        NewWorkspaceRequested?.Invoke();
     }
 
     [RelayCommand]

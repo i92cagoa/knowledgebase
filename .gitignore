@@ -28,3 +28,7 @@ x86/
 ## Logs
 *.log
 logs/
+
+## Bundling output
+dist/
+build/

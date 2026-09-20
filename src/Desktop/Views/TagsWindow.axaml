@@ -18,8 +18,8 @@
             <TextBlock Text="Tags" FontWeight="Bold" FontSize="16" />
             <TextBlock Text="{Binding StatusMessage}" Foreground="#8FC7FF" />
             <Grid ColumnDefinitions="*,90,Auto">
-                <TextBox Grid.Column="0" Text="{Binding NewTagName}" Watermark="New tag name" />
-                <TextBox Grid.Column="1" Text="{Binding NewTagColor}" Watermark="#RRGGBB" Margin="6,0" />
+                <TextBox Grid.Column="0" Text="{Binding NewTagName}" PlaceholderText="New tag name" />
+                <TextBox Grid.Column="1" Text="{Binding NewTagColor}" PlaceholderText="#RRGGBB" Margin="6,0" />
                 <Button Grid.Column="2" Content="Add" Command="{Binding AddTagCommand}" />
             </Grid>
         </StackPanel>
@@ -41,14 +41,14 @@
 
             <StackPanel Grid.Column="1" Spacing="8" Margin="12,0,0,0">
                 <TextBlock Text="Edit selected" FontWeight="SemiBold" />
-                <TextBox Text="{Binding EditName}" Watermark="Rename" />
-                <TextBox Text="{Binding EditColor}" Watermark="#RRGGBB" />
+                <TextBox Text="{Binding EditName}" PlaceholderText="Rename" />
+                <TextBox Text="{Binding EditColor}" PlaceholderText="#RRGGBB" />
                 <Button Content="Save changes" Command="{Binding UpdateTagCommand}" />
 
                 <Separator Margin="0,8" />
 
                 <TextBlock Text="Merge into another tag" FontWeight="SemiBold" />
-                <TextBox Text="{Binding MergeTargetName}" Watermark="Target tag name" />
+                <TextBox Text="{Binding MergeTargetName}" PlaceholderText="Target tag name" />
                 <Button Content="Merge selection into target" Command="{Binding MergeTagCommand}" />
 
                 <Separator Margin="0,8" />

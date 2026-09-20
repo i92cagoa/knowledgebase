@@ -8,11 +8,11 @@ namespace KnowledgeBase.Desktop.ViewModels;
 
 public sealed partial class SearchViewModel : ViewModelBase
 {
-    private readonly KnowledgeBaseApiClient _api;
+    private readonly IKnowledgeBaseApiClient _api;
     private readonly Action<NoteSearchItem> _openNote;
     private CancellationTokenSource? _debounceCts;
 
-    public SearchViewModel(KnowledgeBaseApiClient api, Action<NoteSearchItem> openNote)
+    public SearchViewModel(IKnowledgeBaseApiClient api, Action<NoteSearchItem> openNote)
     {
         _api = api;
         _openNote = openNote;

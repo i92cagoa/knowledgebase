@@ -19,7 +19,6 @@ public sealed class NoteSearchTests
 
         var workspaceId = (await workspaces.CreateAsync(new CreateWorkspaceCommand("Search", null), CancellationToken.None)).Value;
 
-        var str = "search-notes";
         var firstId = (await notes.CreateAsync(
             new CreateNoteCommand(workspaceId, "EF Core caching", "covers Npgsql query plan", ["server", "dotnet"]),
             CancellationToken.None)).Value;

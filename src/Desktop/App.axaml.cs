@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 using KnowledgeBase.Desktop.Configuration;
 using KnowledgeBase.Desktop.Services;
 using KnowledgeBase.Desktop.ViewModels;
@@ -22,12 +23,15 @@ public partial class App : Application
             var apiOptions = DesktopConfiguration.LoadApiOptions();
             var api = new KnowledgeBaseApiClient(apiOptions.BaseUrl);
             var viewModel = new MainViewModel(api);
-            viewModel.InitializeAsync().GetAwaiter().GetResult();
 
             desktop.MainWindow = new MainWindow
             {
                 DataContext = viewModel,
             };
+
+            // Load data in the background so the window is responsive immediately;
+            // never block the UI thread waiting for the API.
+            Dispatcher.UIThread.Post(async () => await viewModel.InitializeAsync());
         }
 
         base.OnFrameworkInitializationCompleted();
