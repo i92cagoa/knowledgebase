@@ -23,6 +23,8 @@ public sealed partial class MainViewModel : ViewModelBase
         Tree.WorkspaceSelectionChanged += OnWorkspaceSelected;
         Search = new SearchViewModel(api, OnSearchItemSelected);
         Tags = new TagManagerViewModel(api);
+        Graph = new GraphViewModel(api);
+        Graph.NodeSelected += OnGraphNodeSelected;
     }
 
     public TreeViewModel Tree { get; }
@@ -30,6 +32,8 @@ public sealed partial class MainViewModel : ViewModelBase
     public SearchViewModel Search { get; }
 
     public TagManagerViewModel Tags { get; }
+
+    public GraphViewModel Graph { get; }
 
     [ObservableProperty]
     public partial string StatusMessage { get; set; } = "Ready";
@@ -82,6 +86,20 @@ public sealed partial class MainViewModel : ViewModelBase
     }
 
     public event Action? TagManagerRequested;
+
+    [RelayCommand]
+    private async Task OpenGraphAsync()
+    {
+        await Graph.LoadAsync();
+        GraphRequested?.Invoke();
+    }
+
+    public event Action? GraphRequested;
+
+    private async void OnGraphNodeSelected(Guid noteId)
+    {
+        await LoadNoteIntoEditorAsync(noteId);
+    }
 
     private async void OnSearchItemSelected(NoteSearchItem item)
     {

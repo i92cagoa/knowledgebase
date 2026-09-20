@@ -34,6 +34,17 @@ public sealed record PagedSearchResult<T>(
     int TotalCount,
     int TotalPages);
 
+public sealed record GraphNode(
+    Guid Id,
+    string Title,
+    Guid WorkspaceId,
+    string WorkspaceName,
+    IReadOnlyList<string> Tags);
+
+public sealed record GraphEdge(Guid SourceNoteId, Guid TargetNoteId);
+
+public sealed record GraphData(IReadOnlyList<GraphNode> Nodes, IReadOnlyList<GraphEdge> Edges);
+
 public sealed record CreateWorkspaceRequest(string Name, string? Description);
 public sealed record UpdateWorkspaceRequest(string Name, string? Description);
 

@@ -11,4 +11,5 @@ public interface INoteService
     Task<Result<NoteDto>> GetByIdAsync(Guid id, CancellationToken cancellationToken);
     Task<Result<IReadOnlyList<NoteSummaryDto>>> ListByWorkspaceAsync(Guid workspaceId, CancellationToken cancellationToken);
     Task<Result<PagedResult<NoteSearchResultDto>>> SearchAsync(SearchNotesCommand command, CancellationToken cancellationToken);
+    Task<Result<GraphDto>> GetGraphAsync(Guid? workspaceId, CancellationToken cancellationToken);
 }

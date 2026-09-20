@@ -82,5 +82,23 @@ public sealed class TagSteps
         tags!.Single(t => t.Name == name).NoteCount.Should().Be(count);
     }
 
+    [Then(@"the graph has (\d+) nodes")]
+    public async Task ThenTheGraphHasNodes(int count)
+    {
+        var graph = await (await _client.GetAsync("/api/graph")).Content.ReadFromJsonAsync<GraphBody>();
+        graph!.Nodes.Should().HaveCount(count);
+    }
+
+    [Then(@"the graph has (\d+) edge")]
+    public async Task ThenTheGraphHasEdges(int count)
+    {
+        var graph = await (await _client.GetAsync("/api/graph")).Content.ReadFromJsonAsync<GraphBody>();
+        graph!.Edges.Should().HaveCount(count);
+    }
+
     public sealed record TagBody(Guid Id, string Name, string Color, int NoteCount);
+
+    public sealed record GraphNodeBody(Guid Id, string Title, Guid WorkspaceId, string WorkspaceName, IReadOnlyList<string> Tags);
+    public sealed record GraphEdgeBody(Guid SourceNoteId, Guid TargetNoteId);
+    public sealed record GraphBody(IReadOnlyList<GraphNodeBody> Nodes, IReadOnlyList<GraphEdgeBody> Edges);
 }

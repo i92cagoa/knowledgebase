@@ -62,6 +62,12 @@ public sealed class KnowledgeBaseApiClient
             $"api/notes?{string.Join('&', parts)}");
     }
 
+    public Task<GraphData?> GetGraphAsync(Guid? workspaceId = null)
+    {
+        var suffix = workspaceId is null ? "" : $"?workspaceId={workspaceId}";
+        return _http.GetFromJsonAsync<GraphData>($"api/graph{suffix}");
+    }
+
     public Task<List<Workspace>?> GetWorkspacesAsync() =>
         _http.GetFromJsonAsync<List<Workspace>>("api/workspaces");
 

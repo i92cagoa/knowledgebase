@@ -52,3 +52,16 @@ public sealed record PagedResult<T>(
     int PageSize,
     int TotalCount,
     int TotalPages);
+
+public sealed record GraphNodeDto(
+    Guid Id,
+    string Title,
+    Guid WorkspaceId,
+    string WorkspaceName,
+    IReadOnlyList<string> Tags);
+
+public sealed record GraphEdgeDto(Guid SourceNoteId, Guid TargetNoteId);
+
+public sealed record GraphDto(
+    IReadOnlyList<GraphNodeDto> Nodes,
+    IReadOnlyList<GraphEdgeDto> Edges);

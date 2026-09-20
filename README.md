@@ -164,6 +164,7 @@ resource identifier lives in the URL path, and HTTP methods map to actions.
 | POST | `/api/notes/{noteId}/attachments?kind={1,2}` | Upload picture (1) / canvas (2) to a note |
 | GET | `/api/attachments/{id}` | Stream attachment content |
 | DELETE | `/api/attachments/{id}` | Delete attachment |
+| GET | `/api/graph?workspaceId={id}` | Graph nodes (notes) + edges (shared tags), optionally scoped to a workspace |
 | GET | `/health` | Health check |
 
 Error model: business errors are returned as `Result<T>` → JSON with `{ code, description }` and an
@@ -193,6 +194,7 @@ Located in `tests/E2ETests/Features`. Each scenario runs against a fresh SQLite 
 | `Health.feature` | Healthy service is reported | `/health` responds `Healthy` |
 | `Notes.feature` | Create note with tags in workspace; reuse tag keeps a single tag; search finds notes by title and tag | note CRUD, tree, tag reuse, search |
 | `Tags.feature` | Rename a tag; merge a tag into another reassigns notes | tag rename/recolor, merge, note counts |
+| `Graph.feature` | Graph connects notes sharing tags | `/api/graph` nodes + edges |
 
 Run them with: `dotnet test tests/E2ETests`
 
@@ -254,10 +256,10 @@ Hovering/clicking a node opens the note.
 
 | Task | Status | Notes |
 |---|---|---|
-| 4.1 Graph model: nodes = notes, edges = shared tags | **planned** | |
-| 4.2 Graph data API (nodes + edges) | **planned** | |
-| 4.3 Graph rendering in Avalonia | **planned** | |
-| 4.4 Node click → open note; drag/pan/zoom | **planned** | |
+| 4.1 Graph model: nodes = notes, edges = shared tags | **done** | deduplicated undirected edges |
+| 4.2 Graph data API (nodes + edges) | **done** | `GET /api/graph?workspaceId=` |
+| 4.3 Graph rendering in Avalonia | **done** | custom `GraphView` control, force-directed layout |
+| 4.4 Node click → open note; drag/pan/zoom | **done** | click opens note in editor, drag pans, wheel zooms |
 
 ### Feature 5 — Link to article → new note
 Add a URL that becomes a note. Analyze the link with an LLM to extract topics/tags and a short

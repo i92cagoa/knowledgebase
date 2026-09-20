@@ -34,6 +34,7 @@
                 <Button Content="Delete Note" Command="{Binding DeleteNoteCommand}" />
                 <Button Content="Search (⌘K)" Command="{Binding OpenSearchCommand}" />
                 <Button Content="Tags" Command="{Binding OpenTagManagerCommand}" />
+                <Button Content="Graph" Command="{Binding OpenGraphCommand}" />
                 <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center" Foreground="#BBBBBB" />
             </StackPanel>
         </Border>

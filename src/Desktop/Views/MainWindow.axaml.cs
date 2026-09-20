@@ -20,6 +20,15 @@ public partial class MainWindow : Window
                     };
                     window.ShowDialog(this);
                 };
+
+                vm.GraphRequested += () =>
+                {
+                    var window = new GraphWindow
+                    {
+                        DataContext = vm.Graph
+                    };
+                    window.ShowDialog(this);
+                };
             }
         };
     }

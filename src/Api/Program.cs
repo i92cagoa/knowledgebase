@@ -28,6 +28,7 @@ app.MapNoteEndpoints();
 app.MapTagEndpoints();
 app.MapTagMergeEndpoints();
 app.MapAttachmentEndpoints();
+app.MapGraphEndpoints();
 
 app.Run();
 

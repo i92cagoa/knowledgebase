@@ -183,6 +183,87 @@ public sealed class NoteService(
         return Result<PagedResult<NoteSearchResultDto>>.Success(result);
     }
 
+    public async Task<Result<GraphDto>> GetGraphAsync(Guid? workspaceId, CancellationToken cancellationToken)
+    {
+        var query = db.Notes
+            .AsNoTracking()
+            .AsSplitQuery();
+
+        if (workspaceId is not null)
+        {
+            query = query.Where(n => n.WorkspaceId == workspaceId);
+        }
+
+        var notes = await query
+            .Select(n => new
+            {
+                n.Id,
+                n.Title,
+                n.WorkspaceId,
+                WorkspaceName = n.Workspace.Name,
+                Tags = n.NoteTags.Select(nt => nt.Tag.Name).ToList()
+            })
+            .ToListAsync(cancellationToken);
+
+        var nodes = notes
+            .Select(n => new GraphNodeDto(
+                n.Id,
+                n.Title,
+                n.WorkspaceId,
+                n.WorkspaceName,
+                n.Tags))
+            .ToList();
+
+        var noteTuples = notes
+            .Select(n => (n.Id, n.Title, n.WorkspaceId, n.WorkspaceName, n.Tags))
+            .ToList();
+
+        var edges = BuildSharedTagEdges(noteTuples);
+
+        return Result<GraphDto>.Success(new GraphDto(ToReadOnlyList(nodes), ToReadOnlyList(edges)));
+    }
+
+    private static List<GraphEdgeDto> BuildSharedTagEdges(
+        IReadOnlyList<(Guid Id, string Title, Guid WorkspaceId, string WorkspaceName, List<string> Tags)> notes)
+    {
+        var byTag = new Dictionary<string, List<Guid>>();
+        foreach (var note in notes)
+        {
+            foreach (var tag in note.Tags)
+            {
+                if (!byTag.TryGetValue(tag, out var list))
+                {
+                    list = [];
+                    byTag[tag] = list;
+                }
+
+                list.Add(note.Id);
+            }
+        }
+
+        var seen = new HashSet<(Guid, Guid)>();
+        var edges = new List<GraphEdgeDto>();
+
+        foreach (var group in byTag.Values)
+        {
+            for (var i = 0; i < group.Count; i++)
+            {
+                for (var j = i + 1; j < group.Count; j++)
+                {
+                    var a = group[i];
+                    var b = group[j];
+                    var key = a.CompareTo(b) < 0 ? (a, b) : (b, a);
+                    if (seen.Add(key))
+                    {
+                        edges.Add(new GraphEdgeDto(key.Item1, key.Item2));
+                    }
+                }
+            }
+        }
+
+        return edges;
+    }
+
     private async Task AssignTagsAsync(Note note, IReadOnlyList<string> tagNames, CancellationToken cancellationToken)
     {
         var distinctNames = tagNames
