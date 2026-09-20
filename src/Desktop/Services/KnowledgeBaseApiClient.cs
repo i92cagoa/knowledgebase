@@ -22,8 +22,45 @@ public sealed class KnowledgeBaseApiClient
     public Task<List<Tag>?> GetTagsAsync() =>
         _http.GetFromJsonAsync<List<Tag>>("api/tags");
 
+    public async Task<Guid> CreateTagAsync(string name, string color)
+    {
+        var response = await _http.PostAsJsonAsync("api/tags", new CreateTagRequest(name, color));
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<Guid>();
+    }
+
+    public async Task UpdateTagAsync(Guid id, string name, string color)
+    {
+        var response = await _http.PutAsJsonAsync($"api/tags/{id}", new UpdateTagRequest(name, color));
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task DeleteTagAsync(Guid id)
+    {
+        var response = await _http.DeleteAsync($"api/tags/{id}");
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task MergeTagAsync(Guid sourceTagId, Guid targetTagId)
+    {
+        var response = await _http.PostAsJsonAsync("api/tag-merges", new MergeTagsRequest(sourceTagId, targetTagId));
+        response.EnsureSuccessStatusCode();
+    }
+
     public Task<Note?> GetNoteAsync(Guid id) =>
         _http.GetFromJsonAsync<Note>($"api/notes/{id}");
+
+    public Task<PagedSearchResult<NoteSearchItem>?> SearchNotesAsync(string query, string? tags, int page, int pageSize)
+    {
+        var queryPart = string.IsNullOrWhiteSpace(query) ? "" : $"titleQuery={Uri.EscapeDataString(query)}";
+        var tagsPart = string.IsNullOrWhiteSpace(tags) ? "" : $"tags={Uri.EscapeDataString(tags)}";
+        var parts = new List<string> { $"page={page}", $"pageSize={pageSize}" };
+        if (queryPart != "") parts.Add(queryPart);
+        if (tagsPart != "") parts.Add(tagsPart);
+
+        return _http.GetFromJsonAsync<PagedSearchResult<NoteSearchItem>>(
+            $"api/notes?{string.Join('&', parts)}");
+    }
 
     public Task<List<Workspace>?> GetWorkspacesAsync() =>
         _http.GetFromJsonAsync<List<Workspace>>("api/workspaces");

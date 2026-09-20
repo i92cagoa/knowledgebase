@@ -132,6 +132,57 @@ public sealed class NoteService(
         return Result<IReadOnlyList<NoteSummaryDto>>.Success(ToReadOnlyList(notes));
     }
 
+    public async Task<Result<PagedResult<NoteSearchResultDto>>> SearchAsync(SearchNotesCommand command, CancellationToken cancellationToken)
+    {
+        var page = Math.Max(1, command.Page);
+        var pageSize = Math.Clamp(command.PageSize, 1, 100);
+
+        var hasTitleQuery = !string.IsNullOrWhiteSpace(command.TitleQuery);
+        var titleQuery = command.TitleQuery?.Trim() ?? string.Empty;
+        var tagNames = command.TagNames?
+            .Select(t => t.Trim())
+            .Where(t => t.Length > 0)
+            .Distinct()
+            .ToList() ?? [];
+
+        var query = db.Notes
+            .AsNoTracking()
+            .AsSplitQuery();
+
+        if (hasTitleQuery)
+        {
+            var pattern = $"%{titleQuery}%";
+            query = query.Where(n =>
+                EF.Functions.Like(n.Title, pattern) ||
+                EF.Functions.Like(n.ContentMarkdown, pattern));
+        }
+
+        if (tagNames.Count > 0)
+        {
+            query = query.Where(n => n.NoteTags.Any(nt => tagNames.Contains(nt.Tag.Name)));
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderByDescending(n => n.UpdatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(n => new NoteSearchResultDto(
+                n.Id,
+                n.Title,
+                n.UpdatedAt,
+                n.WorkspaceId,
+                n.Workspace.Name,
+                n.NoteTags.Select(nt => nt.Tag.Name).ToList()))
+            .ToListAsync(cancellationToken);
+
+        var totalPages = totalCount == 0 ? 0 : (int)Math.Ceiling((double)totalCount / pageSize);
+
+        var result = new PagedResult<NoteSearchResultDto>(ToReadOnlyList(items), page, pageSize, totalCount, totalPages);
+        return Result<PagedResult<NoteSearchResultDto>>.Success(result);
+    }
+
     private async Task AssignTagsAsync(Note note, IReadOnlyList<string> tagNames, CancellationToken cancellationToken)
     {
         var distinctNames = tagNames

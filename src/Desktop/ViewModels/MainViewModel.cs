@@ -21,9 +21,15 @@ public sealed partial class MainViewModel : ViewModelBase
         Tree = new TreeViewModel(api);
         Tree.NoteSelectionChanged += OnNoteSelected;
         Tree.WorkspaceSelectionChanged += OnWorkspaceSelected;
+        Search = new SearchViewModel(api, OnSearchItemSelected);
+        Tags = new TagManagerViewModel(api);
     }
 
     public TreeViewModel Tree { get; }
+
+    public SearchViewModel Search { get; }
+
+    public TagManagerViewModel Tags { get; }
 
     [ObservableProperty]
     public partial string StatusMessage { get; set; } = "Ready";
@@ -54,6 +60,33 @@ public sealed partial class MainViewModel : ViewModelBase
     public async Task InitializeAsync()
     {
         await LoadAllAsync();
+    }
+
+    [RelayCommand]
+    private void OpenSearch()
+    {
+        Search.Open();
+    }
+
+    [RelayCommand]
+    private void CloseSearch()
+    {
+        Search.Close();
+    }
+
+    [RelayCommand]
+    private async Task OpenTagManagerAsync()
+    {
+        await Tags.LoadAsync();
+        TagManagerRequested?.Invoke();
+    }
+
+    public event Action? TagManagerRequested;
+
+    private async void OnSearchItemSelected(NoteSearchItem item)
+    {
+        Search.Close();
+        await LoadNoteIntoEditorAsync(item.Id);
     }
 
     private async Task LoadAllAsync()
@@ -104,21 +137,7 @@ public sealed partial class MainViewModel : ViewModelBase
         IsBusy = true;
         try
         {
-            var note = await _api.GetNoteAsync(node.Id);
-            if (note is null)
-            {
-                StatusMessage = "Note no longer exists.";
-                IsEditorVisible = false;
-                return;
-            }
-
-            _editingNoteId = note.Id;
-            NoteTitle = note.Title;
-            NoteContent = note.ContentMarkdown;
-            NoteTagsText = string.Join(", ", note.Tags.Select(t => t.Name));
-            PreviewMarkdown = note.ContentMarkdown;
-            IsEditing = true;
-            IsEditorVisible = true;
+            await LoadNoteIntoEditorAsync(node.Id);
         }
         catch (Exception ex)
         {
@@ -128,6 +147,27 @@ public sealed partial class MainViewModel : ViewModelBase
         {
             IsBusy = false;
         }
+    }
+
+    private async Task LoadNoteIntoEditorAsync(Guid noteId)
+    {
+        var note = await _api.GetNoteAsync(noteId);
+        if (note is null)
+        {
+            StatusMessage = "Note no longer exists.";
+            IsEditorVisible = false;
+            return;
+        }
+
+        _editingNoteId = note.Id;
+        _currentWorkspaceId = note.WorkspaceId;
+        NoteTitle = note.Title;
+        NoteContent = note.ContentMarkdown;
+        NoteTagsText = string.Join(", ", note.Tags.Select(t => t.Name));
+        PreviewMarkdown = note.ContentMarkdown;
+        IsEditing = true;
+        IsEditorVisible = true;
+        StatusMessage = $"Opened note '{note.Title}'.";
     }
 
     [RelayCommand]

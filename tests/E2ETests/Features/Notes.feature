@@ -22,3 +22,12 @@ Scenario: Reusing a tag keeps a single tag
 	And I create a note titled "Note B" in that workspace
 	And I add tags "dotnet" to the note
 	Then the tag "dotnet" exists exactly once
+
+Scenario: Search finds notes by title and tag
+	Given a workspace named "Search"
+	When I create a note titled "EF Core caching" in that workspace
+	And I add tags "dotnet, database" to the note
+	And I create a note titled "Avalonia bindings" in that workspace
+	And I add tags "dotnet, ui" to the note
+	Then searching for "Avalonia" returns 1 note
+	And searching for tag "database" returns 1 note

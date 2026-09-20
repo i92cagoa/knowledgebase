@@ -1,8 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
 using AwesomeAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.Configuration;
 using TechTalk.SpecFlow;
 
 namespace KnowledgeBase.E2ETests.Steps;
@@ -11,48 +9,22 @@ namespace KnowledgeBase.E2ETests.Steps;
 public sealed class NoteSteps
 {
     private readonly NoteContext _context;
-    private readonly WebApplicationFactory<Program> _factory;
     private readonly HttpClient _client;
 
-    private Guid _workspaceId;
     private Guid _noteId;
+    private string _noteTitle = "";
 
     public NoteSteps(NoteContext context)
     {
         _context = context;
-        _factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
-        {
-            _dbPath = Path.Combine(Path.GetTempPath(), $"kb-e2e-{Guid.NewGuid():N}.db");
-            _storagePath = Path.Combine(Path.GetTempPath(), $"kb-e2e-uploads-{Guid.NewGuid():N}");
-            Directory.CreateDirectory(_storagePath);
-            builder.UseSetting("Database:Provider", "Sqlite");
-            builder.UseSetting("Database:ConnectionString", $"Data Source={_dbPath}");
-            builder.UseSetting("Storage:RootPath", _storagePath);
-        });
-        _client = _factory.CreateClient();
-    }
-
-    private string _dbPath = "";
-    private string _storagePath = "";
-
-    [Given(@"the API is running with a clean database")]
-    public void GivenTheApiIsRunningWithCleanDatabase()
-    {
-        _client.BaseAddress.Should().NotBeNull();
-    }
-
-    [Given(@"a workspace named ""(.*)""")]
-    public async Task GivenAWorkspaceNamed(string name)
-    {
-        var response = await _client.PostAsJsonAsync("/api/workspaces", new { name, description = (string?)null });
-        response.StatusCode.Should().Be(HttpStatusCode.Created);
-        _workspaceId = await response.Content.ReadFromJsonAsync<Guid>();
+        _client = ApiSteps.CurrentClient;
     }
 
     [When(@"I create a note titled ""(.*)"" in that workspace")]
     public async Task WhenICreateANoteTitledInThatWorkspace(string title)
     {
-        var response = await _client.PostAsJsonAsync($"/api/workspaces/{_workspaceId}/notes", new
+        _noteTitle = title;
+        var response = await _client.PostAsJsonAsync($"/api/workspaces/{ApiSteps.CurrentWorkspaceId}/notes", new
         {
             title,
             contentMarkdown = "# body",
@@ -66,7 +38,7 @@ public sealed class NoteSteps
     public async Task ThenTheNoteIsStoredUnderTheWorkspace()
     {
         var tree = await (await _client.GetAsync("/api/workspaces?embed=notes")).Content.ReadFromJsonAsync<List<TreeBody>>();
-        var ws = tree!.Single(w => w.Id == _workspaceId);
+        var ws = tree!.Single(w => w.Id == ApiSteps.CurrentWorkspaceId);
         ws.Notes.Should().Contain(n => n.Id == _noteId);
     }
 
@@ -76,7 +48,7 @@ public sealed class NoteSteps
         var tags = tagsCsv.Split(',').Select(t => t.Trim()).ToArray();
         var response = await _client.PutAsJsonAsync($"/api/notes/{_noteId}", new
         {
-            title = "title",
+            title = _noteTitle,
             contentMarkdown = "# body",
             tags
         });
@@ -98,6 +70,23 @@ public sealed class NoteSteps
         tags!.Count(t => t.Name == tagName).Should().Be(1);
     }
 
+    [Then(@"searching for ""(.*)"" returns (\d+) note")]
+    public async Task ThenSearchingForReturnsNote(string query, int expectedCount)
+    {
+        var page = await (await _client.GetAsync($"/api/notes?titleQuery={Uri.EscapeDataString(query)}")).Content.ReadFromJsonAsync<SearchPage>();
+        page!.TotalCount.Should().Be(expectedCount);
+    }
+
+    [Then(@"searching for tag ""(.*)"" returns (\d+) note")]
+    public async Task ThenSearchingForTagReturnsNote(string tag, int expectedCount)
+    {
+        var page = await (await _client.GetAsync($"/api/notes?tags={Uri.EscapeDataString(tag)}")).Content.ReadFromJsonAsync<SearchPage>();
+        page!.TotalCount.Should().Be(expectedCount);
+    }
+
+    public sealed record SearchItem(Guid Id, string Title, DateTime UpdatedAt, Guid WorkspaceId, string WorkspaceName, IReadOnlyList<string> Tags);
+    public sealed record SearchPage(IReadOnlyList<SearchItem> Items, int Page, int PageSize, int TotalCount, int TotalPages);
+
     public sealed record TreeBody(Guid Id, string Name, IReadOnlyList<NoteTreeBody> Notes);
     public sealed record NoteTreeBody(Guid Id, string Title, DateTime UpdatedAt, IReadOnlyList<string> Tags);
     public sealed record NoteBody(
@@ -107,5 +96,5 @@ public sealed class NoteSteps
         Guid WorkspaceId,
         IReadOnlyList<TagBody> Tags,
         IReadOnlyList<object> Attachments);
-    public sealed record TagBody(Guid Id, string Name, string Color);
+    public sealed record TagBody(Guid Id, string Name, string Color, int NoteCount);
 }

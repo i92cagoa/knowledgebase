@@ -20,8 +20,25 @@ public static class TagEndpoints
                 : result.ToHttpResult();
         });
 
+        group.MapPut("/{id:guid}", async (Guid id, UpdateTagCommand body, ITagService service, CancellationToken ct) =>
+        {
+            var command = body with { Id = id };
+            return (await service.UpdateAsync(command, ct)).ToHttpResult();
+        });
+
         group.MapDelete("/{id:guid}", async (Guid id, ITagService service, CancellationToken ct) =>
             (await service.DeleteAsync(new DeleteTagCommand(id), ct)).ToHttpResult());
+
+        return app;
+    }
+
+    public static IEndpointRouteBuilder MapTagMergeEndpoints(this IEndpointRouteBuilder app)
+    {
+        var group = app.MapGroup("api/tag-merges")
+            .WithTags("Tags");
+
+        group.MapPost("/", async (MergeTagCommand command, ITagService service, CancellationToken ct) =>
+            (await service.MergeAsync(command, ct)).ToHttpResult());
 
         return app;
     }

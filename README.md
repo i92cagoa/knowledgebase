@@ -128,6 +128,15 @@ The desktop app reads its API URL from `src/Desktop/appsettings.json`:
 }
 ```
 
+The app icon is a lightbulb representing knowledge, generated from
+`tools/generate_icon.py` into `src/Desktop/Assets/bulb.{ico,png}`. It is used as the window/executable
+icon (`<ApplicationIcon>` + `Icon="/Assets/bulb.ico"`) and shown in the app toolbar. Regenerate with:
+
+```bash
+python3 tools/generate_icon.py
+cp tools/bulb.png tools/bulb.ico src/Desktop/Assets/
+```
+
 ## API surface
 
 The API is **RESTful**: resources are nouns, related resources are nested under their parent, the
@@ -144,11 +153,14 @@ resource identifier lives in the URL path, and HTTP methods map to actions.
 | GET | `/api/workspaces/{id}/notes` | List note summaries in a workspace |
 | POST | `/api/workspaces/{id}/notes` | Create note (title, markdown, tags, source url/summary) |
 | GET | `/api/notes/{id}` | Get one note with tags + attachments |
+| GET | `/api/notes?titleQuery={text}&tags={t1,t2}&page={n}&pageSize={n}` | Search/paginate notes by title/content and tags |
 | PUT | `/api/notes/{id}` | Update note + replace its tags |
 | DELETE | `/api/notes/{id}` | Delete note |
-| GET | `/api/tags` | List all tags |
+| GET | `/api/tags` | List all tags (with per-tag note counts) |
 | POST | `/api/tags` | Create tag |
+| PUT | `/api/tags/{id}` | Update tag (rename/recolor) |
 | DELETE | `/api/tags/{id}` | Delete tag |
+| POST | `/api/tag-merges` | Merge a source tag into a target tag (reassigns notes) |
 | POST | `/api/notes/{noteId}/attachments?kind={1,2}` | Upload picture (1) / canvas (2) to a note |
 | GET | `/api/attachments/{id}` | Stream attachment content |
 | DELETE | `/api/attachments/{id}` | Delete attachment |
@@ -179,7 +191,8 @@ Located in `tests/E2ETests/Features`. Each scenario runs against a fresh SQLite 
 | Feature | Scenarios | What it verifies |
 |---|---|---|
 | `Health.feature` | Healthy service is reported | `/health` responds `Healthy` |
-| `Notes.feature` | Create note with tags in workspace; reuse tag keeps a single tag | note CRUD, tree, tag reuse |
+| `Notes.feature` | Create note with tags in workspace; reuse tag keeps a single tag; search finds notes by title and tag | note CRUD, tree, tag reuse, search |
+| `Tags.feature` | Rename a tag; merge a tag into another reassigns notes | tag rename/recolor, merge, note counts |
 
 Run them with: `dotnet test tests/E2ETests`
 
@@ -220,19 +233,20 @@ Spotlight-style overlay and paginated results.
 
 | Task | Status | Notes |
 |---|---|---|
-| 2.1 Search API (title/tag/full-text) | **planned** | |
-| 2.2 Paginated search results | **planned** | |
-| 2.3 Spotlight overlay in Avalonia (global hotkey) | **planned** | |
-| 2.4 Open result → navigate to note | **planned** | |
+| 2.1 Search API (title/tag/full-text) | **done** | `GET /api/notes?titleQuery=&tags=&page=&pageSize=` |
+| 2.2 Paginated search results | **done** | `PagedResult<T>` — items, page, pageSize, totalCount, totalPages |
+| 2.3 Spotlight overlay in Avalonia (global hotkey) | **done** | `Ctrl/Cmd+K`, debounced-as-you-type search |
+| 2.4 Open result → navigate to note | **done** | Enter/double-click loads the note into the editor |
 
 ### Feature 3 — Tag management
 Define and manage the tag vocabulary used to relate and search notes.
 
 | Task | Status | Notes |
 |---|---|---|
-| 3.1 Tag CRUD + rename/merge | **planned** | |
-| 3.2 Tag existence validation on note save | **planned** | FluentValidation |
-| 3.3 Reuse existing tag OR create-on-assign policy | **planned** | |
+| 3.1 Tag CRUD + rename/merge | **done** | create/update/delete + `POST /api/tag-merges` |
+| 3.2 Tag existence validation on note save | **done** | FluentValidation on create/update/merge + note save |
+| 3.3 Reuse existing tag OR create-on-assign policy | **done** | notes create-or-reuse tags by name |
+| 3.4 Tag management UI | **done** | Avalonia "Tags" window: add, rename, recolor, merge, delete, note counts |
 
 ### Feature 4 — Notes graph
 Graph visualization like Obsidian where notes (nodes) are connected by shared tags / relations.

@@ -26,6 +26,7 @@ app.MapHealthEndpoints();
 app.MapWorkspaceEndpoints();
 app.MapNoteEndpoints();
 app.MapTagEndpoints();
+app.MapTagMergeEndpoints();
 app.MapAttachmentEndpoints();
 
 app.Run();

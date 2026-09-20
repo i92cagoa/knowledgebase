@@ -1,0 +1,64 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:KnowledgeBase.Desktop.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="640" d:DesignHeight="560"
+        x:Class="KnowledgeBase.Desktop.Views.TagsWindow"
+        x:DataType="vm:TagManagerViewModel"
+        Title="Tag Manager"
+        Width="640" Height="560">
+
+    <Design.DataContext>
+        <vm:TagManagerViewModel />
+    </Design.DataContext>
+
+    <Grid RowDefinitions="Auto,*,Auto" Margin="12">
+        <StackPanel Grid.Row="0" Spacing="6" Margin="0,0,0,8">
+            <TextBlock Text="Tags" FontWeight="Bold" FontSize="16" />
+            <TextBlock Text="{Binding StatusMessage}" Foreground="#8FC7FF" />
+            <Grid ColumnDefinitions="*,90,Auto">
+                <TextBox Grid.Column="0" Text="{Binding NewTagName}" Watermark="New tag name" />
+                <TextBox Grid.Column="1" Text="{Binding NewTagColor}" Watermark="#RRGGBB" Margin="6,0" />
+                <Button Grid.Column="2" Content="Add" Command="{Binding AddTagCommand}" />
+            </Grid>
+        </StackPanel>
+
+        <Grid Grid.Row="1" ColumnDefinitions="220,*">
+            <ListBox Grid.Column="0" ItemsSource="{Binding Tags}"
+                     SelectedItem="{Binding SelectedTag, Mode=TwoWay}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:TagRow}">
+                        <Grid ColumnDefinitions="16,*">
+                            <Border Grid.Column="0" CornerRadius="8" Width="12" Height="12"
+                                    HorizontalAlignment="Left" VerticalAlignment="Center"
+                                    Background="{Binding Color}" />
+                            <TextBlock Grid.Column="1" Text="{Binding DisplayName}" />
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <StackPanel Grid.Column="1" Spacing="8" Margin="12,0,0,0">
+                <TextBlock Text="Edit selected" FontWeight="SemiBold" />
+                <TextBox Text="{Binding EditName}" Watermark="Rename" />
+                <TextBox Text="{Binding EditColor}" Watermark="#RRGGBB" />
+                <Button Content="Save changes" Command="{Binding UpdateTagCommand}" />
+
+                <Separator Margin="0,8" />
+
+                <TextBlock Text="Merge into another tag" FontWeight="SemiBold" />
+                <TextBox Text="{Binding MergeTargetName}" Watermark="Target tag name" />
+                <Button Content="Merge selection into target" Command="{Binding MergeTagCommand}" />
+
+                <Separator Margin="0,8" />
+
+                <Button Content="Delete selected tag" Command="{Binding DeleteTagCommand}"
+                        Foreground="#FF6B6B" />
+            </StackPanel>
+        </Grid>
+
+        <Button Grid.Row="2" Content="Close" HorizontalAlignment="Right" Margin="0,8,0,0"
+                Click="OnCloseClick" />
+    </Grid>
+</Window>

@@ -21,4 +21,10 @@ public sealed class Tag
             CreatedAt = DateTime.UtcNow
         };
     }
+
+    public void Update(string name, string color)
+    {
+        Name = name;
+        Color = color;
+    }
 }

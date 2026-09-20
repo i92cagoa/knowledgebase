@@ -9,6 +9,27 @@ public static class NoteEndpoints
         var group = app.MapGroup("api/notes")
             .WithTags("Notes");
 
+        group.MapGet("/", async (
+            string? titleQuery,
+            string? tags,
+            int? page,
+            int? pageSize,
+            INoteService service,
+            CancellationToken ct) =>
+        {
+            var tagNames = string.IsNullOrWhiteSpace(tags)
+                ? null
+                : tags.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+
+            var command = new SearchNotesCommand(
+                titleQuery,
+                tagNames,
+                page ?? 1,
+                pageSize ?? 20);
+
+            return (await service.SearchAsync(command, ct)).ToHttpResult();
+        });
+
         group.MapGet("/{id:guid}", async (Guid id, INoteService service, CancellationToken ct) =>
             (await service.GetByIdAsync(id, ct)).ToHttpResult());
 
